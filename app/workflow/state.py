@@ -1,0 +1,20 @@
+from typing import TypedDict
+
+
+class PaperState(TypedDict):
+
+    pdf_text: str
+
+    summary: str
+
+    key_points: list
+
+    contributions: list
+
+    limitations: list
+
+    equations: list
+
+    equation_explanations: list
+
+    journal_notes: str
