@@ -8,10 +8,3 @@ Agentic AI system for:
 - Mathematical explanation
 - Journal note generation
 
-## Run
-
-pip install -r requirements.txt
-
-cp .env.example .env
-
-python run.py
