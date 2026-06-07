@@ -13,8 +13,8 @@ class MathAgent:
         self.prompt = ChatPromptTemplate.from_template(MATH_PROMPT)
         self.chain = self.prompt | self.llm
 
-    def run(self, text: str) -> MathOutput:
-        result = self.chain.invoke({"text": text})
+    def run(self, equation: str) -> MathOutput:
+        result = self.chain.invoke({"equation": equation})
         content = result.content
 
         try:
@@ -22,8 +22,8 @@ class MathAgent:
             end = content.rfind("}") + 1
             if start != -1 and end > start:
                 parsed = json.loads(content[start:end])
-                return MathOutput(explanations=parsed.get("explanations", []))
+                return MathOutput(explanation=parsed.get("explanation", content))
         except (json.JSONDecodeError, Exception):
             pass
 
-        return MathOutput(explanations=[])
+        return MathOutput(explanation=content)

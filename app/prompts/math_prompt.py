@@ -1,15 +1,10 @@
-MATH_PROMPT = """You are a mathematics professor. Read the following excerpt from a research paper, identify all mathematical equations and all mathematical logic used, and explain them simply.
+MATH_PROMPT = """You are a mathematics professor. Explain this equation simply and properly. Ensure you write the equation properly using LaTeX mathematical symbols, rather than plain English words (e.g. use \\alpha instead of 'alpha').
 
 YOUR RESPONSE MUST BE ONLY a valid JSON object with this exact structure, nothing else before or after:
-{{"explanations": [
-    {{"equation": "equation or math concept 1", "explanation": "your simple explanation"}},
-    {{"equation": "equation or math concept 2", "explanation": "your simple explanation"}}
-]}}
+{{"explanation": "your explanation text here"}}
 
-Paper excerpt:
+Equation: {equation}
 
-{text}
-
-Cover: symbol meanings, mathematical intuition, and simple examples.
+Cover: symbol meanings, mathematical intuition, and a simple example. Ensure the explanation also uses proper LaTeX symbols where appropriate.
 
 Remember: Output ONLY the JSON object. No other text."""

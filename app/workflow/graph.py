@@ -8,6 +8,7 @@ from app.workflow.nodes import (
     keypoint_node,
     contribution_node,
     limitation_node,
+    equation_node,
     math_node,
     journal_node
 )
@@ -37,6 +38,11 @@ def build_graph():
     workflow.add_node(
         "limitations_node",
         limitation_node
+    )
+
+    workflow.add_node(
+        "equations_node",
+        equation_node
     )
 
     workflow.add_node(
@@ -71,6 +77,11 @@ def build_graph():
 
     workflow.add_edge(
         "limitations_node",
+        "equations_node"
+    )
+
+    workflow.add_edge(
+        "equations_node",
         "math_node"
     )
 

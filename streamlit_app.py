@@ -769,17 +769,12 @@ if uploaded_file is not None:
 
                     points = parse_bullet_points(result.get("key_points", []))
                     if points:
-                        items_html = ""
-                        for i, point in enumerate(points):
-                            items_html += f"""
-                            <div class="bullet-item">
-                                <span class="bullet-marker">{str(i+1).zfill(2)}</span>
-                                <span class="bullet-text">{point}</span>
-                            </div>
-                            """
+                        md_text = "\\n".join([f"- {p}" for p in points])
                         st.markdown(f"""
                         <div class="result-card">
-                            {items_html}
+                            
+{md_text}
+
                         </div>
                         """, unsafe_allow_html=True)
                     else:
@@ -799,13 +794,14 @@ if uploaded_file is not None:
 
                     contributions = parse_bullet_points(result.get("contributions", []))
                     if contributions:
-                        for i, cont in enumerate(contributions):
-                            st.markdown(f"""
-                            <div class="result-card">
-                                <div class="card-label"><span class="label-dot"></span> Contribution {str(i+1).zfill(2)}</div>
-                                <p>{cont}</p>
-                            </div>
-                            """, unsafe_allow_html=True)
+                        md_text = "\\n".join([f"- {p}" for p in contributions])
+                        st.markdown(f"""
+                        <div class="result-card">
+                            
+{md_text}
+
+                        </div>
+                        """, unsafe_allow_html=True)
                     else:
                         st.markdown("""
                         <div class="result-card">
@@ -823,17 +819,12 @@ if uploaded_file is not None:
 
                     limitations = parse_bullet_points(result.get("limitations", []))
                     if limitations:
-                        items_html = ""
-                        for i, lim in enumerate(limitations):
-                            items_html += f"""
-                            <div class="bullet-item">
-                                <span class="bullet-marker">⚠</span>
-                                <span class="bullet-text">{lim}</span>
-                            </div>
-                            """
+                        md_text = "\\n".join([f"- {p}" for p in limitations])
                         st.markdown(f"""
                         <div class="result-card" style="border-left: 3px solid var(--accent-warm);">
-                            {items_html}
+                            
+{md_text}
+
                         </div>
                         """, unsafe_allow_html=True)
                     else:
