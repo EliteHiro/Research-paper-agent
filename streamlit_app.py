@@ -769,11 +769,10 @@ if uploaded_file is not None:
 
                     points = parse_bullet_points(result.get("key_points", []))
                     if points:
-                        md_text = "\\n".join([f"- {p}" for p in points])
+                        md_text = "".join([f"<div style='display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;'><span style='flex-shrink:0; font-size:1.1rem;'>💡</span><span style='line-height:1.6;'>{p}</span></div>" for p in points])
                         st.markdown(f"""
                         <div class="result-card">
-                            
-{md_text}
+                            {md_text}
 
                         </div>
                         """, unsafe_allow_html=True)
@@ -794,11 +793,10 @@ if uploaded_file is not None:
 
                     contributions = parse_bullet_points(result.get("contributions", []))
                     if contributions:
-                        md_text = "\\n".join([f"- {p}" for p in contributions])
+                        md_text = "".join([f"<div style='display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;'><span style='flex-shrink:0; font-size:1.1rem;'>✨</span><span style='line-height:1.6;'>{p}</span></div>" for p in contributions])
                         st.markdown(f"""
                         <div class="result-card">
-                            
-{md_text}
+                            {md_text}
 
                         </div>
                         """, unsafe_allow_html=True)
@@ -819,11 +817,10 @@ if uploaded_file is not None:
 
                     limitations = parse_bullet_points(result.get("limitations", []))
                     if limitations:
-                        md_text = "\\n".join([f"- {p}" for p in limitations])
+                        md_text = "".join([f"<div style='display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;'><span style='flex-shrink:0; font-size:1.1rem;'>⚠️</span><span style='line-height:1.6;'>{p}</span></div>" for p in limitations])
                         st.markdown(f"""
                         <div class="result-card" style="border-left: 3px solid var(--accent-warm);">
-                            
-{md_text}
+                            {md_text}
 
                         </div>
                         """, unsafe_allow_html=True)
