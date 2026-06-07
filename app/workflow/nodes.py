@@ -38,27 +38,20 @@ def limitation_node(state):
 
 
 def equation_node(state):
-    equations = extract_equations(state["pdf_text"])
-    return {"equations": equations}
+    # Node no longer used directly but kept as placeholder if needed, now math_node handles all
+    return {"equations": []}
 
 
 def math_node(state):
     agent = MathAgent()
-    explanations = []
-    equations = state.get("equations", [])
-
-    for equation in equations[:5]:
-        try:
-            result = agent.run(equation)
-            explanations.append({
-                "equation": equation,
-                "explanation": result.explanation
-            })
-        except Exception:
-            explanations.append({
-                "equation": equation,
-                "explanation": "Could not analyze this equation."
-            })
+    text = truncate_text(state["pdf_text"])
+    
+    try:
+        result = agent.run(text)
+        explanations = result.explanations if result.explanations else []
+    except Exception as e:
+        print(f"Math Agent Error: {e}")
+        explanations = []
 
     return {"equation_explanations": explanations}
 

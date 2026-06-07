@@ -731,6 +731,21 @@ if uploaded_file is not None:
                     "Journal Notes"
                 ])
 
+                def parse_bullet_points(raw_list):
+                    '''Flattens a list that might contain a single big markdown blob into clean strings.'''
+                    clean_list = []
+                    for item in raw_list:
+                        if "\\n" in item:
+                            for line in item.split("\\n"):
+                                cleaned = line.strip(" -*•\\r\\n")
+                                if cleaned:
+                                    clean_list.append(cleaned)
+                        else:
+                            cleaned = item.strip(" -*•\\r\\n")
+                            if cleaned:
+                                clean_list.append(cleaned)
+                    return clean_list
+
                 with tab1:
                     st.markdown("""
                     <div class="result-card">
@@ -752,7 +767,7 @@ if uploaded_file is not None:
                     </div>
                     """, unsafe_allow_html=True)
 
-                    points = result.get("key_points", [])
+                    points = parse_bullet_points(result.get("key_points", []))
                     if points:
                         items_html = ""
                         for i, point in enumerate(points):
@@ -782,7 +797,7 @@ if uploaded_file is not None:
                     </div>
                     """, unsafe_allow_html=True)
 
-                    contributions = result.get("contributions", [])
+                    contributions = parse_bullet_points(result.get("contributions", []))
                     if contributions:
                         for i, cont in enumerate(contributions):
                             st.markdown(f"""
@@ -806,7 +821,7 @@ if uploaded_file is not None:
                     </div>
                     """, unsafe_allow_html=True)
 
-                    limitations = result.get("limitations", [])
+                    limitations = parse_bullet_points(result.get("limitations", []))
                     if limitations:
                         items_html = ""
                         for i, lim in enumerate(limitations):

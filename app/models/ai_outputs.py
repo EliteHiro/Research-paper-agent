@@ -19,7 +19,7 @@ class LimitationOutput(BaseModel):
 
 
 class MathOutput(BaseModel):
-    explanation: str
+    explanations: list
 
 
 class JournalOutput(BaseModel):
