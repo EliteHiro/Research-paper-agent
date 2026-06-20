@@ -21,25 +21,48 @@ st.set_page_config(page_title="Research Paper Agent", page_icon="🧬", layout="
 with st.sidebar:
     st.markdown("### ⚙️ LLM Provider Keys")
     st.markdown(
-        "<span style='font-size: 0.8rem; color: #666;'>"
-        "Provide multiple keys for automatic fallback. If Groq hits a token limit, "
-        "the agent will seamlessly switch to Gemini, Anthropic, or OpenAI."
+        "<span style='font-size: 0.8rem; color: #888;'>"
+        "Provide at least one key. If a provider hits its rate limit, "
+        "the app automatically switches to the next available one."
         "</span>", 
         unsafe_allow_html=True
     )
     
     st.markdown("---")
     
-    groq_key = st.text_input("Groq API Key (Primary)", value=os.environ.get("GROQ_API_KEY", ""), type="password")
-    gemini_key = st.text_input("Google Gemini API Key (Fallback)", value=os.environ.get("GOOGLE_API_KEY", ""), type="password")
-    openai_key = st.text_input("OpenAI API Key (Fallback)", value=os.environ.get("OPENAI_API_KEY", ""), type="password")
-    anthropic_key = st.text_input("Anthropic API Key (Fallback)", value=os.environ.get("ANTHROPIC_API_KEY", ""), type="password")
+    groq_key = st.text_input("Groq API Key", value=os.environ.get("GROQ_API_KEY", ""), type="password")
+    gemini_key = st.text_input("Google Gemini API Key", value=os.environ.get("GOOGLE_API_KEY", ""), type="password")
+    openai_key = st.text_input("OpenAI API Key", value=os.environ.get("OPENAI_API_KEY", ""), type="password")
+    anthropic_key = st.text_input("Anthropic API Key", value=os.environ.get("ANTHROPIC_API_KEY", ""), type="password")
     
-    # Update environment variables dynamically based on user input
-    if groq_key: os.environ["GROQ_API_KEY"] = groq_key
-    if gemini_key: os.environ["GOOGLE_API_KEY"] = gemini_key
-    if openai_key: os.environ["OPENAI_API_KEY"] = openai_key
-    if anthropic_key: os.environ["ANTHROPIC_API_KEY"] = anthropic_key
+    # Write keys to os.environ so llm_factory can pick them up
+    if groq_key.strip(): os.environ["GROQ_API_KEY"] = groq_key.strip()
+    elif "GROQ_API_KEY" in os.environ: del os.environ["GROQ_API_KEY"]
+    
+    if gemini_key.strip(): os.environ["GOOGLE_API_KEY"] = gemini_key.strip()
+    elif "GOOGLE_API_KEY" in os.environ: del os.environ["GOOGLE_API_KEY"]
+    
+    if openai_key.strip(): os.environ["OPENAI_API_KEY"] = openai_key.strip()
+    elif "OPENAI_API_KEY" in os.environ: del os.environ["OPENAI_API_KEY"]
+    
+    if anthropic_key.strip(): os.environ["ANTHROPIC_API_KEY"] = anthropic_key.strip()
+    elif "ANTHROPIC_API_KEY" in os.environ: del os.environ["ANTHROPIC_API_KEY"]
+
+    # Show active providers status
+    st.markdown("---")
+    from app.services.llm_factory import get_active_providers
+    active = get_active_providers()
+    if active:
+        status_html = " → ".join([f"<strong>{p}</strong>" for p in active])
+        st.markdown(
+            f"<div style='font-size: 0.82rem; color: #2e7d32;'>✅ Active: {status_html}</div>",
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            "<div style='font-size: 0.82rem; color: #c62828;'>⚠️ No providers configured</div>",
+            unsafe_allow_html=True
+        )
 
 # ── Premium CSS inspired by makingsoftware.com ──────────────────────────────
 st.markdown("""
