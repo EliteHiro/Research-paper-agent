@@ -2,18 +2,43 @@ import streamlit as st
 import os
 import tempfile
 
-# Load API key: Streamlit Cloud secrets first, then .env fallback for local dev
-try:
-    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
-except Exception:
-    from dotenv import load_dotenv
-    load_dotenv()
-
 from app.parsers.pdf_parser import PDFParser
 from app.services.paper_service import PaperAnalysisService
 
 # Set up the page
 st.set_page_config(page_title="Research Paper Agent", page_icon="🧬", layout="wide")
+
+# ── Sidebar Settings ────────────────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("### ⚙️ Settings")
+    
+    # Try to load default key from secrets or env for convenience, but allow override
+    default_key = ""
+    try:
+        default_key = st.secrets.get("GROQ_API_KEY", "")
+    except Exception:
+        from dotenv import load_dotenv
+        load_dotenv()
+        default_key = os.environ.get("GROQ_API_KEY", "")
+
+    user_api_key = st.text_input(
+        "Groq API Key", 
+        value=default_key, 
+        type="password", 
+        help="Get your free API key at console.groq.com"
+    )
+    
+    if user_api_key:
+        os.environ["GROQ_API_KEY"] = user_api_key
+        
+    st.markdown("---")
+    st.markdown(
+        "<span style='font-size: 0.8rem; color: #666;'>"
+        "This app uses Groq for lightning-fast AI inference. "
+        "Providing your own key ensures you won't hit shared rate limits."
+        "</span>", 
+        unsafe_allow_html=True
+    )
 
 # ── Premium CSS inspired by makingsoftware.com ──────────────────────────────
 st.markdown("""
@@ -689,6 +714,10 @@ if uploaded_file is not None:
         analyze_clicked = st.button("⬡  Analyze Paper")
 
     if analyze_clicked:
+        if not os.environ.get("GROQ_API_KEY"):
+            st.error("⚠️ Please enter your Groq API Key in the sidebar to begin analysis.")
+            st.stop()
+            
         with st.status("Analyzing paper...", expanded=True) as status:
             try:
                 st.write("↳ Loading PDF document...")
