@@ -104,5 +104,8 @@ def diagram_node(state):
         except subprocess.CalledProcessError as e:
             print(f"Diagram export failed: {e.stderr}")
             return {"diagram_xml": xml, "diagram_path": drawio_path}
+        except Exception as e:
+            print(f"Diagram export execution failed: {e}")
+            return {"diagram_xml": xml, "diagram_path": drawio_path}
     else:
         return {"diagram_xml": xml, "diagram_path": drawio_path}
