@@ -78,7 +78,13 @@ def diagram_node(state):
     
     agent = DiagramAgent()
     try:
-        result = agent.run(state.get("summary", ""), state.get("key_points", []))
+        result = agent.run(
+            summary=state.get("summary", ""),
+            key_points=state.get("key_points", []),
+            contributions=state.get("contributions", []),
+            limitations=state.get("limitations", []),
+            equations=state.get("equation_explanations", [])
+        )
         xml = result.xml
     except Exception as e:
         print(f"Diagram generation failed: {e}")

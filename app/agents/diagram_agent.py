@@ -10,11 +10,14 @@ class DiagramAgent:
         self.prompt = ChatPromptTemplate.from_template(DIAGRAM_PROMPT)
         self.chain = self.prompt | self.llm
 
-    def run(self, summary: str, key_points: list) -> DiagramOutput:
+    def run(self, summary: str, key_points: list, contributions: list, limitations: list, equations: list) -> DiagramOutput:
         try:
             result = self.chain.invoke({
                 "summary": summary,
-                "key_points": "\n".join(key_points) if isinstance(key_points, list) else str(key_points)
+                "key_points": "\n".join(key_points) if isinstance(key_points, list) else str(key_points),
+                "contributions": "\n".join(contributions) if isinstance(contributions, list) else str(contributions),
+                "limitations": "\n".join(limitations) if isinstance(limitations, list) else str(limitations),
+                "equations": "\n".join([eq.get("equation", "") if isinstance(eq, dict) else str(eq) for eq in equations]) if isinstance(equations, list) else str(equations)
             })
             content = result.content
             start = content.find("{")
