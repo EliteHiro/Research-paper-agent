@@ -885,24 +885,17 @@ if uploaded_file is not None:
                     diagram_path = result.get("diagram_path")
                     
                     if diagram_xml:
-                        import json
+                        import urllib.parse
                         import streamlit.components.v1 as components
                         
                         st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Interactive Diagram Viewer. You can zoom, pan, and click elements!</p>", unsafe_allow_html=True)
                         
-                        graph_data = {
-                            "highlight": "#0000ff",
-                            "nav": True,
-                            "resize": True,
-                            "toolbar": "zoom layers tags lightbox",
-                            "edit": "_blank",
-                            "xml": diagram_xml
-                        }
-                        graph_json = json.dumps(graph_data).replace('"', '&quot;')
+                        # Encode the XML for the URL hash
+                        encoded_xml = urllib.parse.quote(diagram_xml)
+                        viewer_url = f"https://viewer.diagrams.net/?nav=1&highlight=0000ff&edit=_blank&fit=1#R{encoded_xml}"
                         
                         html_code = f"""
-                        <div class="mxgraph" style="max-width:100%; border:1px solid #ccc; border-radius: 8px; background:#fff; height:600px;" data-mxgraph="{graph_json}"></div>
-                        <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+                        <iframe frameborder="0" style="width:100%; height:600px; border:1px solid #ccc; border-radius: 8px; background:#fff;" src="{viewer_url}"></iframe>
                         """
                         components.html(html_code, height=650, scrolling=True)
                         
