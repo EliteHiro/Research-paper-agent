@@ -722,13 +722,14 @@ if uploaded_file is not None:
                 """, unsafe_allow_html=True)
 
                 # ── Tabs ──
-                tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+                tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
                     "Summary",
                     "Key Findings",
                     "Contributions",
                     "Limitations",
                     "Equations",
-                    "Journal Notes"
+                    "Journal Notes",
+                    "📊 Diagram"
                 ])
 
                 def parse_bullet_points(raw_list):
@@ -872,6 +873,27 @@ if uploaded_file is not None:
                         height=400,
                         label_visibility="collapsed"
                     )
+
+                with tab7:
+                    st.markdown("""
+                    <div class="section-header" style="margin-top: 0;">
+                        <h2>Generated Diagram</h2>
+                        <div class="section-rule"></div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    diagram_path = result.get("diagram_path")
+                    if diagram_path and os.path.exists(diagram_path):
+                        if diagram_path.endswith(".png"):
+                            st.image(diagram_path, use_container_width=True)
+                            with open(diagram_path, "rb") as file:
+                                st.download_button(label="Download PNG Image", data=file, file_name="diagram.png", mime="image/png")
+                        else:
+                            st.warning("draw.io desktop app not found for image export. Download the raw .drawio file below and open it at https://app.diagrams.net/")
+                            with open(diagram_path, "rb") as file:
+                                st.download_button(label="Download .drawio file", data=file, file_name="diagram.drawio", mime="application/xml")
+                    else:
+                        st.info("No diagram generated.")
 
             except Exception as e:
                 status.update(label="Error occurred", state="error", expanded=True)

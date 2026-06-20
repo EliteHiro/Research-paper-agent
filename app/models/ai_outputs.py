@@ -24,3 +24,7 @@ class MathOutput(BaseModel):
 
 class JournalOutput(BaseModel):
     notes: str
+
+class DiagramOutput(BaseModel):
+    xml: str
+

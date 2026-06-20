@@ -27,7 +27,9 @@ class PaperAnalysisService:
 
             "equation_explanations": [],
 
-            "journal_notes": ""
+            "journal_notes": "",
+            "diagram_xml": "",
+            "diagram_path": ""
         }
 
         result = self.graph.invoke(

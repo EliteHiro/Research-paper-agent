@@ -18,3 +18,7 @@ class PaperState(TypedDict):
     equation_explanations: list
 
     journal_notes: str
+
+    diagram_xml: str
+
+    diagram_path: str
