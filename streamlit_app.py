@@ -5,15 +5,41 @@ import tempfile
 from app.parsers.pdf_parser import PDFParser
 from app.services.paper_service import PaperAnalysisService
 
-# Load API key: Streamlit Cloud secrets first, then .env fallback for local dev
+# Load default keys from Streamlit secrets or .env
 try:
-    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+    for key in ["GROQ_API_KEY", "GOOGLE_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"]:
+        if key in st.secrets:
+            os.environ[key] = st.secrets[key]
 except Exception:
     from dotenv import load_dotenv
     load_dotenv()
 
 # Set up the page
 st.set_page_config(page_title="Research Paper Agent", page_icon="🧬", layout="wide")
+
+# ── Multi-LLM Settings Sidebar ──────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("### ⚙️ LLM Provider Keys")
+    st.markdown(
+        "<span style='font-size: 0.8rem; color: #666;'>"
+        "Provide multiple keys for automatic fallback. If Groq hits a token limit, "
+        "the agent will seamlessly switch to Gemini, Anthropic, or OpenAI."
+        "</span>", 
+        unsafe_allow_html=True
+    )
+    
+    st.markdown("---")
+    
+    groq_key = st.text_input("Groq API Key (Primary)", value=os.environ.get("GROQ_API_KEY", ""), type="password")
+    gemini_key = st.text_input("Google Gemini API Key (Fallback)", value=os.environ.get("GOOGLE_API_KEY", ""), type="password")
+    openai_key = st.text_input("OpenAI API Key (Fallback)", value=os.environ.get("OPENAI_API_KEY", ""), type="password")
+    anthropic_key = st.text_input("Anthropic API Key (Fallback)", value=os.environ.get("ANTHROPIC_API_KEY", ""), type="password")
+    
+    # Update environment variables dynamically based on user input
+    if groq_key: os.environ["GROQ_API_KEY"] = groq_key
+    if gemini_key: os.environ["GOOGLE_API_KEY"] = gemini_key
+    if openai_key: os.environ["OPENAI_API_KEY"] = openai_key
+    if anthropic_key: os.environ["ANTHROPIC_API_KEY"] = anthropic_key
 
 # ── Premium CSS inspired by makingsoftware.com ──────────────────────────────
 st.markdown("""
@@ -689,6 +715,11 @@ if uploaded_file is not None:
         analyze_clicked = st.button("⬡  Analyze Paper")
 
     if analyze_clicked:
+        keys_present = any(os.environ.get(k) for k in ["GROQ_API_KEY", "GOOGLE_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"])
+        if not keys_present:
+            st.error("⚠️ Please enter at least one API Key in the sidebar to begin analysis.")
+            st.stop()
+            
         with st.status("Analyzing paper...", expanded=True) as status:
             try:
                 st.write("↳ Loading PDF document...")
