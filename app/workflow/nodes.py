@@ -48,7 +48,7 @@ def math_node(state):
     explanations = []
     equations = state.get("equations", [])
 
-    for equation in equations[:5]:
+    for equation in equations[:3]:
         try:
             result = agent.run(equation)
             explanations.append({
@@ -66,8 +66,12 @@ def math_node(state):
 
 def journal_node(state):
     agent = JournalAgent()
-    text = truncate_text(state["pdf_text"])
-    result = agent.run(text)
+    result = agent.run(
+        summary=state.get("summary", ""),
+        key_points=state.get("key_points", []),
+        contributions=state.get("contributions", []),
+        limitations=state.get("limitations", [])
+    )
     return {"journal_notes": result.notes}
 
 def diagram_node(state):

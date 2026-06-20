@@ -13,8 +13,13 @@ class JournalAgent:
         self.prompt = ChatPromptTemplate.from_template(JOURNAL_PROMPT)
         self.chain = self.prompt | self.llm
 
-    def run(self, text: str) -> JournalOutput:
-        result = self.chain.invoke({"text": text})
+    def run(self, summary: str, key_points: list, contributions: list, limitations: list) -> JournalOutput:
+        result = self.chain.invoke({
+            "summary": summary,
+            "key_points": "\n".join(key_points) if isinstance(key_points, list) else str(key_points),
+            "contributions": "\n".join(contributions) if isinstance(contributions, list) else str(contributions),
+            "limitations": "\n".join(limitations) if isinstance(limitations, list) else str(limitations)
+        })
         content = result.content
 
         try:

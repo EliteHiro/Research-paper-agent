@@ -22,7 +22,7 @@ def chunk_text(text: str):
     return splitter.split_text(text)
 
 
-def truncate_text(text: str, max_chars: int = 12000) -> str:
+def truncate_text(text: str, max_chars: int = 6000) -> str:
     """Truncate text to a maximum character count to avoid overwhelming the LLM."""
     if len(text) <= max_chars:
         return text
