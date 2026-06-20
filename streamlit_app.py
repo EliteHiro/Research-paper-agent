@@ -5,14 +5,20 @@ import tempfile
 from app.parsers.pdf_parser import PDFParser
 from app.services.paper_service import PaperAnalysisService
 
-# Load default keys from Streamlit secrets or .env
+# Always try to load .env first for local development
 try:
-    for key in ["GROQ_API_KEY", "GOOGLE_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"]:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
+# Load keys from Streamlit secrets (these will override .env)
+try:
+    for key in ["GROQ_API_KEY", "GOOGLE_API_KEY"]:
         if key in st.secrets:
             os.environ[key] = st.secrets[key]
 except Exception:
-    from dotenv import load_dotenv
-    load_dotenv()
+    pass
 
 # Set up the page
 st.set_page_config(page_title="Research Paper Agent", page_icon="🧬", layout="wide")
@@ -718,9 +724,9 @@ if uploaded_file is not None:
         analyze_clicked = st.button("⬡  Analyze Paper")
 
     if analyze_clicked:
-        keys_present = any(os.environ.get(k) for k in ["GROQ_API_KEY", "GOOGLE_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"])
+        keys_present = any(os.environ.get(k) for k in ["GROQ_API_KEY", "GOOGLE_API_KEY"])
         if not keys_present:
-            st.error("⚠️ Please enter at least one API Key in the sidebar to begin analysis.")
+            st.error("⚠️ Please configure at least one API Key (Groq or Google) in your secrets to begin analysis.")
             st.stop()
             
         with st.status("Analyzing paper...", expanded=True) as status:
