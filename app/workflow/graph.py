@@ -10,8 +10,7 @@ from app.workflow.nodes import (
     limitation_node,
     equation_node,
     math_node,
-    journal_node,
-    diagram_node
+    journal_node
 )
 
 
@@ -55,11 +54,6 @@ def build_graph():
         "journal_node",
         journal_node
     )
-    
-    workflow.add_node(
-        "diagram_node",
-        diagram_node
-    )
 
 
     workflow.set_entry_point(
@@ -98,12 +92,8 @@ def build_graph():
 
     workflow.add_edge(
         "journal_node",
-        "diagram_node"
-    )
-    
-    workflow.add_edge(
-        "diagram_node",
         END
     )
 
     return workflow.compile()
+

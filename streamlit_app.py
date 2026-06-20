@@ -881,16 +881,32 @@ if uploaded_file is not None:
                         <div class="section-rule"></div>
                     </div>
                     """, unsafe_allow_html=True)
-                    diagram_xml = result.get("diagram_xml")
-                    diagram_path = result.get("diagram_path")
                     
+                    st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Click the button below to generate a visual diagram of the paper. This uses an additional AI call.</p>", unsafe_allow_html=True)
+                    
+                    if st.button("🔄 Generate Diagram", use_container_width=True):
+                        with st.spinner("Generating diagram..."):
+                            try:
+                                from app.workflow.nodes import diagram_node
+                                diagram_result = diagram_node(result)
+                                diagram_xml = diagram_result.get("diagram_xml", "")
+                            except Exception as diagram_err:
+                                st.error(f"Diagram generation failed: {diagram_err}")
+                                diagram_xml = ""
+                        
+                        if diagram_xml:
+                            st.session_state["diagram_xml"] = diagram_xml
+                        else:
+                            st.warning("Could not generate diagram for this paper. Try again.")
+                    
+                    # Show diagram if it exists in session state
+                    diagram_xml = st.session_state.get("diagram_xml", "")
                     if diagram_xml:
                         import urllib.parse
                         import streamlit.components.v1 as components
                         
-                        st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Interactive Diagram Viewer. You can zoom, pan, and click elements!</p>", unsafe_allow_html=True)
+                        st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Interactive Diagram Viewer — zoom, pan, and click elements!</p>", unsafe_allow_html=True)
                         
-                        # Encode the XML for the URL hash
                         encoded_xml = urllib.parse.quote(diagram_xml)
                         viewer_url = f"https://viewer.diagrams.net/?nav=1&highlight=0000ff&edit=_blank&fit=1#R{encoded_xml}"
                         
@@ -900,17 +916,7 @@ if uploaded_file is not None:
                         components.html(html_code, height=650, scrolling=True)
                         
                         st.markdown("---")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            if diagram_path and os.path.exists(diagram_path) and diagram_path.endswith(".png"):
-                                with open(diagram_path, "rb") as file:
-                                    st.download_button(label="Download PNG", data=file, file_name="diagram.png", mime="image/png", use_container_width=True)
-                            else:
-                                st.button("PNG Export Unavailable (Requires draw.io desktop)", disabled=True, use_container_width=True)
-                        with col2:
-                            st.download_button(label="Download .drawio file", data=diagram_xml, file_name="diagram.drawio", mime="application/xml", use_container_width=True)
-                    else:
-                        st.info("No diagram generated.")
+                        st.download_button(label="Download .drawio file", data=diagram_xml, file_name="diagram.drawio", mime="application/xml", use_container_width=True)
 
             except Exception as e:
                 status.update(label="Error occurred", state="error", expanded=True)
