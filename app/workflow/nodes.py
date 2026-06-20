@@ -80,10 +80,7 @@ def diagram_node(state):
     try:
         result = agent.run(
             summary=state.get("summary", ""),
-            key_points=state.get("key_points", []),
-            contributions=state.get("contributions", []),
-            limitations=state.get("limitations", []),
-            equations=state.get("equation_explanations", [])
+            key_points=state.get("key_points", [])
         )
         xml = result.xml
     except Exception as e:
