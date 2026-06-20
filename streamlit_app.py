@@ -977,7 +977,12 @@ if uploaded_file is not None:
 
             except Exception as e:
                 status.update(label="Error occurred", state="error", expanded=True)
-                st.error(f"An error occurred during analysis: {str(e)}")
+                error_msg = str(e)
+                if "401" in error_msg and "invalid_api_key" in error_msg:
+                    st.error("🚨 **Invalid API Key Error!**")
+                    st.warning("The API key you provided in your `.env` file or Streamlit Secrets is invalid. Please double-check that you copied the key correctly and that it hasn't expired. If you are using Groq, get a new key at console.groq.com.")
+                else:
+                    st.error(f"An error occurred during analysis: {error_msg}")
 
 # ── Footer ──────────────────────────────────────────────────────────────────
 st.markdown("""
