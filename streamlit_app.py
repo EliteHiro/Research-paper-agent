@@ -881,17 +881,41 @@ if uploaded_file is not None:
                         <div class="section-rule"></div>
                     </div>
                     """, unsafe_allow_html=True)
-                    
+                    diagram_xml = result.get("diagram_xml")
                     diagram_path = result.get("diagram_path")
-                    if diagram_path and os.path.exists(diagram_path):
-                        if diagram_path.endswith(".png"):
-                            st.image(diagram_path, use_container_width=True)
-                            with open(diagram_path, "rb") as file:
-                                st.download_button(label="Download PNG Image", data=file, file_name="diagram.png", mime="image/png")
-                        else:
-                            st.warning("draw.io desktop app not found for image export. Download the raw .drawio file below and open it at https://app.diagrams.net/")
-                            with open(diagram_path, "rb") as file:
-                                st.download_button(label="Download .drawio file", data=file, file_name="diagram.drawio", mime="application/xml")
+                    
+                    if diagram_xml:
+                        import json
+                        import streamlit.components.v1 as components
+                        
+                        st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Interactive Diagram Viewer. You can zoom, pan, and click elements!</p>", unsafe_allow_html=True)
+                        
+                        graph_data = {
+                            "highlight": "#0000ff",
+                            "nav": True,
+                            "resize": True,
+                            "toolbar": "zoom layers tags lightbox",
+                            "edit": "_blank",
+                            "xml": diagram_xml
+                        }
+                        graph_json = json.dumps(graph_data).replace('"', '&quot;')
+                        
+                        html_code = f"""
+                        <div class="mxgraph" style="max-width:100%; border:1px solid #ccc; border-radius: 8px; background:#fff; height:600px;" data-mxgraph="{graph_json}"></div>
+                        <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+                        """
+                        components.html(html_code, height=650, scrolling=True)
+                        
+                        st.markdown("---")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if diagram_path and os.path.exists(diagram_path) and diagram_path.endswith(".png"):
+                                with open(diagram_path, "rb") as file:
+                                    st.download_button(label="Download PNG", data=file, file_name="diagram.png", mime="image/png", use_container_width=True)
+                            else:
+                                st.button("PNG Export Unavailable (Requires draw.io desktop)", disabled=True, use_container_width=True)
+                        with col2:
+                            st.download_button(label="Download .drawio file", data=diagram_xml, file_name="diagram.drawio", mime="application/xml", use_container_width=True)
                     else:
                         st.info("No diagram generated.")
 
