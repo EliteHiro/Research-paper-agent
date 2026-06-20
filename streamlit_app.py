@@ -737,6 +737,10 @@ if uploaded_file is not None:
                 service = PaperAnalysisService()
                 result = service.analyze(text)
 
+                # ✅ Persist result in session_state so the diagram button can use it on rerun
+                st.session_state["analysis_result"] = result
+                st.session_state["diagram_xml"] = ""  # clear old diagram on new analysis
+
                 status.update(label="Analysis complete", state="complete", expanded=False)
 
                 # Cleanup the temporary file
@@ -762,6 +766,9 @@ if uploaded_file is not None:
                     "Journal Notes",
                     "📊 Diagram"
                 ])
+
+                # Re-bind result from session_state for rendering (also works after rerun)
+                result = st.session_state.get("analysis_result", result)
 
                 def parse_bullet_points(raw_list):
                     '''Flattens a list that might contain a single big markdown blob into clean strings.'''
@@ -915,22 +922,7 @@ if uploaded_file is not None:
                     
                     st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Click the button below to generate a visual diagram of the paper. This uses an additional AI call.</p>", unsafe_allow_html=True)
                     
-                    if st.button("🔄 Generate Diagram", use_container_width=True):
-                        with st.spinner("Generating diagram..."):
-                            try:
-                                from app.workflow.nodes import diagram_node
-                                diagram_result = diagram_node(result)
-                                diagram_xml = diagram_result.get("diagram_xml", "")
-                            except Exception as diagram_err:
-                                st.error(f"Diagram generation failed: {diagram_err}")
-                                diagram_xml = ""
-                        
-                        if diagram_xml:
-                            st.session_state["diagram_xml"] = diagram_xml
-                        else:
-                            st.warning("Could not generate diagram for this paper. Try again.")
-                    
-                    # Show diagram if it exists in session state
+                    # Always show diagram if already generated
                     diagram_xml = st.session_state.get("diagram_xml", "")
                     if diagram_xml:
                         import urllib.parse
@@ -945,9 +937,34 @@ if uploaded_file is not None:
                         <iframe frameborder="0" style="width:100%; height:600px; border:1px solid #ccc; border-radius: 8px; background:#fff;" src="{viewer_url}"></iframe>
                         """
                         components.html(html_code, height=650, scrolling=True)
-                        
                         st.markdown("---")
                         st.download_button(label="Download .drawio file", data=diagram_xml, file_name="diagram.drawio", mime="application/xml", use_container_width=True)
+                        st.markdown("---")
+                    
+                    if st.button("🔄 Generate Diagram" if not diagram_xml else "♻️ Regenerate Diagram", use_container_width=True):
+                        # Read from session_state — this is available even after Streamlit reruns
+                        cached_result = st.session_state.get("analysis_result", {})
+                        if not cached_result:
+                            st.error("Analysis result not found. Please re-analyze the paper first.")
+                        else:
+                            with st.spinner("Generating diagram..."):
+                                try:
+                                    from app.agents.diagram_agent import DiagramAgent
+                                    agent = DiagramAgent()
+                                    diagram_result = agent.run(
+                                        summary=cached_result.get("summary", ""),
+                                        key_points=cached_result.get("key_points", [])
+                                    )
+                                    new_xml = diagram_result.xml
+                                except Exception as diagram_err:
+                                    st.error(f"Diagram generation failed: {diagram_err}")
+                                    new_xml = ""
+                            
+                            if new_xml:
+                                st.session_state["diagram_xml"] = new_xml
+                                st.rerun()
+                            else:
+                                st.warning("Could not generate diagram for this paper. Please try again.")
 
             except Exception as e:
                 status.update(label="Error occurred", state="error", expanded=True)
