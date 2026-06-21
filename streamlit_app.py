@@ -755,226 +755,6 @@ if uploaded_file is not None:
                 # Cleanup the temporary file
                 os.remove(tmp_path)
 
-                st.markdown("<br>", unsafe_allow_html=True)
-
-                # ── Results Section Header ──
-                st.markdown("""
-                <div class="section-header">
-                    <h2>Analysis Results</h2>
-                    <div class="section-rule"></div>
-                </div>
-                """, unsafe_allow_html=True)
-
-                # ── Tabs ──
-                tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-                    "Summary",
-                    "Key Findings",
-                    "Contributions",
-                    "Limitations",
-                    "Equations",
-                    "Journal Notes",
-                    "📊 Diagram"
-                ])
-
-                # Re-bind result from session_state for rendering (also works after rerun)
-                result = st.session_state.get("analysis_result", result)
-
-                def parse_bullet_points(raw_list):
-                    '''Flattens a list that might contain a single big markdown blob into clean strings.'''
-                    clean_list = []
-                    for item in raw_list:
-                        if "\\n" in item:
-                            for line in item.split("\\n"):
-                                cleaned = line.strip(" -*•\\r\\n")
-                                if cleaned:
-                                    clean_list.append(cleaned)
-                        else:
-                            cleaned = item.strip(" -*•\\r\\n")
-                            if cleaned:
-                                clean_list.append(cleaned)
-                    return clean_list
-
-                with tab1:
-                    st.markdown("""
-                    <div class="result-card">
-                        <div class="card-label"><span class="label-dot"></span> Paper Summary</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    summary_text = result.get("summary", "No summary generated.")
-                    st.markdown(f"""
-                    <div class="result-card">
-                        <p>{summary_text}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                with tab2:
-                    st.markdown("""
-                    <div class="section-header" style="margin-top: 0;">
-                        <h2>Key Findings</h2>
-                        <div class="section-rule"></div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    points = parse_bullet_points(result.get("key_points", []))
-                    if points:
-                        md_text = "".join([f"<div style='display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;'><span style='flex-shrink:0; font-size:1.1rem;'>💡</span><span style='line-height:1.6;'>{p}</span></div>" for p in points])
-                        st.markdown(f"""
-                        <div class="result-card">
-                            {md_text}
-
-                        </div>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.markdown("""
-                        <div class="result-card">
-                            <p style="color: var(--text-muted);">No key findings extracted.</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                with tab3:
-                    st.markdown("""
-                    <div class="section-header" style="margin-top: 0;">
-                        <h2>Novel Contributions</h2>
-                        <div class="section-rule"></div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    contributions = parse_bullet_points(result.get("contributions", []))
-                    if contributions:
-                        md_text = "".join([f"<div style='display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;'><span style='flex-shrink:0; font-size:1.1rem;'>✨</span><span style='line-height:1.6;'>{p}</span></div>" for p in contributions])
-                        st.markdown(f"""
-                        <div class="result-card">
-                            {md_text}
-
-                        </div>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.markdown("""
-                        <div class="result-card">
-                            <p style="color: var(--text-muted);">No contributions identified.</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                with tab4:
-                    st.markdown("""
-                    <div class="section-header" style="margin-top: 0;">
-                        <h2>Limitations & Future Work</h2>
-                        <div class="section-rule"></div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    limitations = parse_bullet_points(result.get("limitations", []))
-                    if limitations:
-                        md_text = "".join([f"<div style='display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;'><span style='flex-shrink:0; font-size:1.1rem;'>⚠️</span><span style='line-height:1.6;'>{p}</span></div>" for p in limitations])
-                        st.markdown(f"""
-                        <div class="result-card" style="border-left: 3px solid var(--accent-warm);">
-                            {md_text}
-
-                        </div>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.markdown("""
-                        <div class="result-card">
-                            <p style="color: var(--text-muted);">No limitations identified.</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                with tab5:
-                    explanations = result.get("equation_explanations", [])
-                    st.markdown(f"""
-                    <div class="section-header" style="margin-top: 0;">
-                        <h2>Mathematical Analysis</h2>
-                        <div class="section-rule"></div>
-                    </div>
-                    <div style="font-family: var(--font-mono); font-size: 0.7rem;
-                                text-transform: uppercase; letter-spacing: 0.1em;
-                                color: var(--text-muted); margin-bottom: 1rem;">
-                        [ {len(explanations)} equation{'s' if len(explanations) != 1 else ''} found ]
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    if explanations:
-                        for idx, eq in enumerate(explanations):
-                            with st.expander(f"Equation {idx + 1}", expanded=(idx == 0)):
-                                st.latex(eq.get("equation", ""))
-                                st.markdown(f"""
-                                <div class="eq-explanation">{eq.get("explanation", "")}</div>
-                                """, unsafe_allow_html=True)
-                    else:
-                        st.markdown("""
-                        <div class="result-card">
-                            <p style="color: var(--text-muted);">No complex equations were found or analyzed in this paper.</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                with tab6:
-                    st.markdown("""
-                    <div class="section-header" style="margin-top: 0;">
-                        <h2>Generated Journal Notes</h2>
-                        <div class="section-rule"></div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    st.text_area(
-                        "Your Study Notes",
-                        result.get("journal_notes", "No journal notes generated."),
-                        height=400,
-                        label_visibility="collapsed"
-                    )
-
-                with tab7:
-                    st.markdown("""
-                    <div class="section-header" style="margin-top: 0;">
-                        <h2>Generated Diagram</h2>
-                        <div class="section-rule"></div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Click the button below to generate a visual diagram of the paper. This uses an additional AI call.</p>", unsafe_allow_html=True)
-                    
-                    # Always show diagram if already generated
-                    diagram_xml = st.session_state.get("diagram_xml", "")
-                    if diagram_xml:
-                        import urllib.parse
-                        import streamlit.components.v1 as components
-                        
-                        st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Interactive Diagram Viewer — zoom, pan, and click elements!</p>", unsafe_allow_html=True)
-                        
-                        encoded_xml = urllib.parse.quote(diagram_xml)
-                        viewer_url = f"https://viewer.diagrams.net/?nav=1&highlight=0000ff&edit=_blank&fit=1#R{encoded_xml}"
-                        
-                        html_code = f"""
-                        <iframe frameborder="0" style="width:100%; height:600px; border:1px solid #ccc; border-radius: 8px; background:#fff;" src="{viewer_url}"></iframe>
-                        """
-                        components.html(html_code, height=650, scrolling=True)
-                        st.markdown("---")
-                        st.download_button(label="Download .drawio file", data=diagram_xml, file_name="diagram.drawio", mime="application/xml", use_container_width=True)
-                        st.markdown("---")
-                    
-                    if st.button("🔄 Generate Diagram" if not diagram_xml else "♻️ Regenerate Diagram", use_container_width=True):
-                        # Read from session_state — this is available even after Streamlit reruns
-                        cached_result = st.session_state.get("analysis_result", {})
-                        if not cached_result:
-                            st.error("Analysis result not found. Please re-analyze the paper first.")
-                        else:
-                            with st.spinner("Generating diagram..."):
-                                try:
-                                    from app.agents.diagram_agent import DiagramAgent
-                                    agent = DiagramAgent()
-                                    diagram_result = agent.run(
-                                        summary=cached_result.get("summary", ""),
-                                        key_points=cached_result.get("key_points", [])
-                                    )
-                                    new_xml = diagram_result.xml
-                                except Exception as diagram_err:
-                                    st.error(f"Diagram generation failed: {diagram_err}")
-                                    new_xml = ""
-                            
-                            if new_xml:
-                                st.session_state["diagram_xml"] = new_xml
-                                st.rerun()
-                            else:
-                                st.warning("Could not generate diagram for this paper. Please try again.")
-
             except Exception as e:
                 status.update(label="Error occurred", state="error", expanded=True)
                 error_msg = str(e)
@@ -983,6 +763,227 @@ if uploaded_file is not None:
                     st.warning("The API key you provided in your `.env` file or Streamlit Secrets is invalid. Please double-check that you copied the key correctly and that it hasn't expired. If you are using Groq, get a new key at console.groq.com.")
                 else:
                     st.error(f"An error occurred during analysis: {error_msg}")
+                st.stop()
+
+    if st.session_state.get("analysis_result"):
+        result = st.session_state["analysis_result"]
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── Results Section Header ──
+        st.markdown("""
+        <div class="section-header">
+            <h2>Analysis Results</h2>
+            <div class="section-rule"></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── Tabs ──
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+            "Summary",
+            "Key Findings",
+            "Contributions",
+            "Limitations",
+            "Equations",
+            "Journal Notes",
+            "📊 Diagram"
+        ])
+
+        def parse_bullet_points(raw_list):
+            '''Flattens a list that might contain a single big markdown blob into clean strings.'''
+            clean_list = []
+            for item in raw_list:
+                if "\\n" in item:
+                    for line in item.split("\\n"):
+                        cleaned = line.strip(" -*•\\r\\n")
+                        if cleaned:
+                            clean_list.append(cleaned)
+                else:
+                    cleaned = item.strip(" -*•\\r\\n")
+                    if cleaned:
+                        clean_list.append(cleaned)
+            return clean_list
+
+        with tab1:
+            st.markdown("""
+            <div class="result-card">
+                <div class="card-label"><span class="label-dot"></span> Paper Summary</div>
+            </div>
+            """, unsafe_allow_html=True)
+            summary_text = result.get("summary", "No summary generated.")
+            st.markdown(f"""
+            <div class="result-card">
+                <p>{summary_text}</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with tab2:
+            st.markdown("""
+            <div class="section-header" style="margin-top: 0;">
+                <h2>Key Findings</h2>
+                <div class="section-rule"></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            points = parse_bullet_points(result.get("key_points", []))
+            if points:
+                md_text = "".join([f"<div style='display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;'><span style='flex-shrink:0; font-size:1.1rem;'>💡</span><span style='line-height:1.6;'>{p}</span></div>" for p in points])
+                st.markdown(f"""
+                <div class="result-card">
+                    {md_text}
+
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="result-card">
+                    <p style="color: var(--text-muted);">No key findings extracted.</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with tab3:
+            st.markdown("""
+            <div class="section-header" style="margin-top: 0;">
+                <h2>Novel Contributions</h2>
+                <div class="section-rule"></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            contributions = parse_bullet_points(result.get("contributions", []))
+            if contributions:
+                md_text = "".join([f"<div style='display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;'><span style='flex-shrink:0; font-size:1.1rem;'>✨</span><span style='line-height:1.6;'>{p}</span></div>" for p in contributions])
+                st.markdown(f"""
+                <div class="result-card">
+                    {md_text}
+
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="result-card">
+                    <p style="color: var(--text-muted);">No contributions identified.</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with tab4:
+            st.markdown("""
+            <div class="section-header" style="margin-top: 0;">
+                <h2>Limitations & Future Work</h2>
+                <div class="section-rule"></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            limitations = parse_bullet_points(result.get("limitations", []))
+            if limitations:
+                md_text = "".join([f"<div style='display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;'><span style='flex-shrink:0; font-size:1.1rem;'>⚠️</span><span style='line-height:1.6;'>{p}</span></div>" for p in limitations])
+                st.markdown(f"""
+                <div class="result-card" style="border-left: 3px solid var(--accent-warm);">
+                    {md_text}
+
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="result-card">
+                    <p style="color: var(--text-muted);">No limitations identified.</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with tab5:
+            explanations = result.get("equation_explanations", [])
+            st.markdown(f"""
+            <div class="section-header" style="margin-top: 0;">
+                <h2>Mathematical Analysis</h2>
+                <div class="section-rule"></div>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.7rem;
+                        text-transform: uppercase; letter-spacing: 0.1em;
+                        color: var(--text-muted); margin-bottom: 1rem;">
+                [ {len(explanations)} equation{'s' if len(explanations) != 1 else ''} found ]
+            </div>
+            """, unsafe_allow_html=True)
+
+            if explanations:
+                for idx, eq in enumerate(explanations):
+                    with st.expander(f"Equation {idx + 1}", expanded=(idx == 0)):
+                        st.latex(eq.get("equation", ""))
+                        st.markdown(f"""
+                        <div class="eq-explanation">{eq.get("explanation", "")}</div>
+                        """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="result-card">
+                    <p style="color: var(--text-muted);">No complex equations were found or analyzed in this paper.</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with tab6:
+            st.markdown("""
+            <div class="section-header" style="margin-top: 0;">
+                <h2>Generated Journal Notes</h2>
+                <div class="section-rule"></div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.text_area(
+                "Your Study Notes",
+                result.get("journal_notes", "No journal notes generated."),
+                height=400,
+                label_visibility="collapsed"
+            )
+
+        with tab7:
+            st.markdown("""
+            <div class="section-header" style="margin-top: 0;">
+                <h2>Generated Diagram</h2>
+                <div class="section-rule"></div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Click the button below to generate a visual diagram of the paper. This uses an additional AI call.</p>", unsafe_allow_html=True)
+            
+            # Always show diagram if already generated
+            diagram_xml = st.session_state.get("diagram_xml", "")
+            if diagram_xml:
+                import urllib.parse
+                import streamlit.components.v1 as components
+                
+                st.markdown("<p style='color: var(--text-muted); font-size: 0.9em;'>Interactive Diagram Viewer — zoom, pan, and click elements!</p>", unsafe_allow_html=True)
+                
+                encoded_xml = urllib.parse.quote(diagram_xml)
+                viewer_url = f"https://viewer.diagrams.net/?nav=1&highlight=0000ff&edit=_blank&fit=1#R{encoded_xml}"
+                
+                html_code = f"""
+                <iframe frameborder="0" style="width:100%; height:600px; border:1px solid #ccc; border-radius: 8px; background:#fff;" src="{viewer_url}"></iframe>
+                """
+                components.html(html_code, height=650, scrolling=True)
+                st.markdown("---")
+                st.download_button(label="Download .drawio file", data=diagram_xml, file_name="diagram.drawio", mime="application/xml", use_container_width=True)
+                st.markdown("---")
+            
+            if st.button("🔄 Generate Diagram" if not diagram_xml else "♻️ Regenerate Diagram", use_container_width=True):
+                # Read from session_state — this is available even after Streamlit reruns
+                cached_result = st.session_state.get("analysis_result", {})
+                if not cached_result:
+                    st.error("Analysis result not found. Please re-analyze the paper first.")
+                else:
+                    with st.spinner("Generating diagram..."):
+                        try:
+                            from app.agents.diagram_agent import DiagramAgent
+                            agent = DiagramAgent()
+                            diagram_result = agent.run(
+                                summary=cached_result.get("summary", ""),
+                                key_points=cached_result.get("key_points", [])
+                            )
+                            new_xml = diagram_result.xml
+                        except Exception as diagram_err:
+                            st.error(f"Diagram generation failed: {diagram_err}")
+                            new_xml = ""
+                    
+                    if new_xml:
+                        st.session_state["diagram_xml"] = new_xml
+                        st.rerun()
+                    else:
+                        st.warning("Could not generate diagram for this paper. Please try again.")
 
 # ── Footer ──────────────────────────────────────────────────────────────────
 st.markdown("""
