@@ -48,9 +48,11 @@ def math_node(state):
     explanations = []
     equations = state.get("equations", [])
 
+    context = f"Summary: {state.get('summary', '')}\nKey Points: {state.get('key_points', [])}"
+    
     for equation in equations[:3]:
         try:
-            result = agent.run(equation)
+            result = agent.run(equation, context=context)
             explanations.append({
                 "equation": equation,
                 "explanation": result.explanation

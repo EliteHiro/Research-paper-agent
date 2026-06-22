@@ -13,8 +13,11 @@ class MathAgent:
         self.prompt = ChatPromptTemplate.from_template(MATH_PROMPT)
         self.chain = self.prompt | self.llm
 
-    def run(self, equation: str) -> MathOutput:
-        result = self.chain.invoke({"equation": equation})
+    def run(self, equation: str, context: str = "") -> MathOutput:
+        result = self.chain.invoke({
+            "equation": equation,
+            "context": context
+        })
         content = result.content
 
         try:
