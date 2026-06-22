@@ -23,8 +23,6 @@ class PaperAnalysisService:
 
             "limitations": [],
 
-            "equations": [],
-
             "equation_explanations": [],
 
             "journal_notes": "",

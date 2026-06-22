@@ -37,14 +37,20 @@ def limitation_node(state):
 
 
 def math_node(state):
+    import logging
+    logger = logging.getLogger(__name__)
+    
     agent = MathAgent()
-    text = truncate_text(state["pdf_text"])
+    # Use a larger limit for math — equations often appear deep in the paper
+    text = truncate_text(state["pdf_text"], max_chars=12000)
     
     try:
         explanations = agent.run(text)
         if not isinstance(explanations, list):
+            logger.warning(f"math_node: agent returned non-list: {type(explanations)}")
             explanations = []
-    except Exception:
+    except Exception as e:
+        logger.error(f"math_node failed: {e}")
         explanations = []
 
     return {"equation_explanations": explanations}

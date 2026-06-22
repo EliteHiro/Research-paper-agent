@@ -905,15 +905,26 @@ if uploaded_file is not None:
 
             if explanations:
                 for idx, eq in enumerate(explanations):
-                    with st.expander(f"Equation {idx + 1}", expanded=(idx == 0)):
-                        st.latex(eq.get("equation", ""))
+                    eq_text = eq.get("equation", "")
+                    explanation_text = eq.get("explanation", "")
+                    with st.expander(f"📐 Equation {idx + 1}", expanded=(idx == 0)):
+                        if eq_text:
+                            try:
+                                st.latex(eq_text)
+                            except Exception:
+                                # Fallback: render as code block if LaTeX fails
+                                st.code(eq_text, language="latex")
                         st.markdown(f"""
-                        <div class="eq-explanation">{eq.get("explanation", "")}</div>
+                        <div style="background: rgba(139,92,246,0.05); border-left: 3px solid var(--accent-primary, #8b5cf6); 
+                                    padding: 1rem 1.2rem; border-radius: 0 8px 8px 0; margin-top: 0.8rem; line-height: 1.7;">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--accent-primary, #8b5cf6); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Explanation</div>
+                            <p style="margin: 0;">{explanation_text}</p>
+                        </div>
                         """, unsafe_allow_html=True)
             else:
                 st.markdown("""
                 <div class="result-card">
-                    <p style="color: var(--text-muted);">No complex equations were found or analyzed in this paper.</p>
+                    <p style="color: var(--text-muted);">No mathematical equations were found in this paper. This may be a qualitative or survey paper.</p>
                 </div>
                 """, unsafe_allow_html=True)
 

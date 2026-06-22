@@ -13,8 +13,6 @@ class PaperState(TypedDict):
 
     limitations: list
 
-    equations: list
-
     equation_explanations: list
 
     journal_notes: str

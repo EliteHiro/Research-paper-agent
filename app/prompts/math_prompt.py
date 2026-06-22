@@ -1,22 +1,38 @@
-MATH_PROMPT = """You are a mathematics professor analyzing a research paper. 
-You will be given the raw, extracted text of a PDF paper. This text is messy and the mathematical equations inside it are likely jumbled (e.g. integrals or fractions are flattened into garbage text).
+MATH_PROMPT = """You are a mathematics professor analyzing a research paper.
 
-Your task is to identify up to 3 of the MOST IMPORTANT mathematical equations in the paper.
-For each equation, you must RECONSTRUCT the original equation properly into clean LaTeX format, and then explain it simply and properly in English.
+Below is the raw extracted text of a research paper. The text is messy because it was extracted from a PDF — mathematical symbols, fractions, integrals, subscripts, and superscripts may appear as garbled or flattened text.
 
-Crucially, you must explain how each equation is USED IN THE PAPER based on the surrounding text context.
+--- START OF PAPER TEXT ---
+{paper_text}
+--- END OF PAPER TEXT ---
 
-YOUR RESPONSE MUST BE ONLY a valid JSON ARRAY of objects with this exact structure, nothing else before or after:
+YOUR TASK:
+1. Carefully read through the paper text above.
+2. Identify the KEY mathematical equations, formulas, or mathematical expressions used in this paper. Look for loss functions, objective functions, probability distributions, optimization formulas, update rules, distance metrics, similarity measures, or any core formula the authors define or use.
+3. Even if the raw text is garbled, use the surrounding context (variable names, descriptions, section headings) to RECONSTRUCT what the original equation must have been.
+4. For each equation, write it in clean, correct LaTeX syntax.
+5. Explain each equation in simple English: what each symbol means, what the equation computes, and how/why it is used in this specific paper.
+
+If the paper has NO mathematical equations at all (e.g. it is a survey or qualitative study), return exactly: []
+
+Otherwise, return a JSON array of 1 to 5 objects. Each object must have exactly two keys: "equation" and "explanation".
+
+RULES FOR THE "equation" FIELD:
+- Write clean LaTeX math (e.g. \\frac{{a}}{{b}}, \\sum_{{i=1}}^{{N}}, \\alpha, \\theta, \\nabla)
+- Do NOT wrap in $$ or \\[ \\] delimiters
+- Do NOT use plain English words for symbols (write \\alpha not "alpha")
+
+RULES FOR THE "explanation" FIELD:
+- Write in plain English
+- Define every symbol used in the equation
+- Explain what the equation computes
+- Explain how the authors use this equation in their paper specifically
+
+YOUR RESPONSE MUST BE ONLY a valid JSON array, nothing else:
 [
   {{
-    "equation": "The reconstructed clean LaTeX equation (e.g. E = mc^2, DO NOT wrap in $$)",
-    "explanation": "Your explanation text here in English. Use proper LaTeX symbols where appropriate."
+    "equation": "clean LaTeX here",
+    "explanation": "plain English explanation here"
   }}
 ]
-
-Raw Paper Text:
-{paper_text}
-
-Cover: symbol meanings, mathematical intuition, and explicitly explain its usage and significance in the provided paper context. Ensure the explanation also uses proper LaTeX symbols where appropriate.
-
-Remember: Output ONLY the JSON array. No other text."""
+"""
