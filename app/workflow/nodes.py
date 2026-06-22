@@ -5,7 +5,6 @@ from app.agents.limitation_agent import LimitationAgent
 from app.agents.math_agent import MathAgent
 from app.agents.journal_agent import JournalAgent
 
-from app.utils.equation_extractor import extract_equations
 from app.utils.text_utils import truncate_text
 
 
