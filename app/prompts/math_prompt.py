@@ -28,11 +28,20 @@ RULES FOR THE "explanation" FIELD:
 - Explain what the equation computes
 - Explain how the authors use this equation in their paper specifically
 
-YOUR RESPONSE MUST BE ONLY a valid JSON array, nothing else:
+YOUR RESPONSE MUST BE ONLY a valid JSON array, nothing else. 
+CRITICAL JSON RULES:
+1. All keys and string values MUST be wrapped in double quotes (e.g. "equation": "E = mc^2").
+2. Because it is a JSON string, you MUST escape all backslashes! (e.g. write "\\\\frac{{a}}{{b}}" instead of "\\frac{{a}}{{b}}").
+
+Example Valid Output:
 [
   {{
-    "equation": "clean LaTeX here",
-    "explanation": "plain English explanation here"
+    "equation": "E = mc^2",
+    "explanation": "Energy equals mass times the speed of light squared."
+  }},
+  {{
+    "equation": "\\\\sum_{{i=1}}^{{N}} x_i",
+    "explanation": "The sum of all elements x_i from 1 to N."
   }}
 ]
 """
