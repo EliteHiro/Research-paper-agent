@@ -37,31 +37,16 @@ def limitation_node(state):
     return {"limitations": result.limitations}
 
 
-def equation_node(state):
-    from app.utils.equation_extractor import extract_equations
-    equations = extract_equations(state["pdf_text"])
-    return {"equations": equations}
-
-
 def math_node(state):
     agent = MathAgent()
-    explanations = []
-    equations = state.get("equations", [])
-
-    context = f"Summary: {state.get('summary', '')}\nKey Points: {state.get('key_points', [])}"
+    text = truncate_text(state["pdf_text"])
     
-    for equation in equations[:3]:
-        try:
-            result = agent.run(equation, context=context)
-            explanations.append({
-                "equation": result.latex_equation,
-                "explanation": result.explanation
-            })
-        except Exception:
-            explanations.append({
-                "equation": equation,
-                "explanation": "Could not analyze this equation."
-            })
+    try:
+        explanations = agent.run(text)
+        if not isinstance(explanations, list):
+            explanations = []
+    except Exception:
+        explanations = []
 
     return {"equation_explanations": explanations}
 

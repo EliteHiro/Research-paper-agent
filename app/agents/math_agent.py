@@ -13,23 +13,22 @@ class MathAgent:
         self.prompt = ChatPromptTemplate.from_template(MATH_PROMPT)
         self.chain = self.prompt | self.llm
 
-    def run(self, equation: str, context: str = "") -> MathOutput:
+    def run(self, paper_text: str) -> list:
+        # We pass the full truncated text to the LLM so it can find the equations itself
         result = self.chain.invoke({
-            "equation": equation,
-            "context": context
+            "paper_text": paper_text
         })
         content = result.content
 
         try:
-            start = content.find("{")
-            end = content.rfind("}") + 1
+            start = content.find("[")
+            end = content.rfind("]") + 1
             if start != -1 and end > start:
                 parsed = json.loads(content[start:end])
-                return MathOutput(
-                    latex_equation=parsed.get("latex_equation", equation),
-                    explanation=parsed.get("explanation", content)
-                )
+                # Ensure it returns a list of dictionaries
+                if isinstance(parsed, list):
+                    return parsed
         except (json.JSONDecodeError, Exception):
             pass
 
-        return MathOutput(latex_equation=equation, explanation=content)
+        return []
