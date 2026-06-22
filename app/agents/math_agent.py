@@ -25,8 +25,11 @@ class MathAgent:
             end = content.rfind("}") + 1
             if start != -1 and end > start:
                 parsed = json.loads(content[start:end])
-                return MathOutput(explanation=parsed.get("explanation", content))
+                return MathOutput(
+                    latex_equation=parsed.get("latex_equation", equation),
+                    explanation=parsed.get("explanation", content)
+                )
         except (json.JSONDecodeError, Exception):
             pass
 
-        return MathOutput(explanation=content)
+        return MathOutput(latex_equation=equation, explanation=content)

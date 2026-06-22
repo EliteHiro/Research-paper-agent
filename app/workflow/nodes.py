@@ -54,7 +54,7 @@ def math_node(state):
         try:
             result = agent.run(equation, context=context)
             explanations.append({
-                "equation": equation,
+                "equation": result.latex_equation,
                 "explanation": result.explanation
             })
         except Exception:

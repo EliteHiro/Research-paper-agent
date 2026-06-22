@@ -19,6 +19,7 @@ class LimitationOutput(BaseModel):
 
 
 class MathOutput(BaseModel):
+    latex_equation: str
     explanation: str
 
 
