@@ -4,6 +4,8 @@ import tempfile
 
 from app.parsers.pdf_parser import PDFParser
 from app.services.paper_service import PaperAnalysisService
+from app.services.db_service import db
+from app.agents.chat_agent import ChatAgent
 
 # Always try to load .env first for local development
 try:
@@ -23,7 +25,7 @@ except Exception:
 # Set up the page
 st.set_page_config(page_title="Research Paper Agent", page_icon="🧬", layout="wide")
 
-# ── Multi-LLM Settings Sidebar ──────────────────────────────────────────────
+# ── Multi-LLM Settings & History Sidebar ─────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ LLM Provider Status")
     st.markdown(
@@ -33,22 +35,36 @@ with st.sidebar:
         unsafe_allow_html=True
     )
     
-    st.markdown("---")
-
     # Show active providers status
     from app.services.llm_factory import get_active_providers
     active = get_active_providers()
     if active:
         status_html = " → ".join([f"<strong>{p}</strong>" for p in active])
         st.markdown(
-            f"<div style='font-size: 0.82rem; color: #2e7d32;'>✅ Active: {status_html}</div>",
+            f"<div style='font-size: 0.82rem; color: #2e7d32; margin-top: 5px;'>✅ Active: {status_html}</div>",
             unsafe_allow_html=True
         )
     else:
         st.markdown(
-            "<div style='font-size: 0.82rem; color: #c62828;'>⚠️ No providers configured in secrets</div>",
+            "<div style='font-size: 0.82rem; color: #c62828; margin-top: 5px;'>⚠️ No providers configured</div>",
             unsafe_allow_html=True
         )
+
+    st.markdown("---")
+    st.markdown("### 📚 History")
+    papers = db.get_all_papers()
+    if papers:
+        for p in papers:
+            if st.button(f"📄 {p['filename']}", key=f"btn_{p['id']}", use_container_width=True):
+                # Load paper into session state
+                paper_data = db.get_paper(p["id"])
+                st.session_state["analysis_result"] = paper_data["analysis_result"]
+                st.session_state["diagram_xml"] = paper_data["analysis_result"].get("diagram_xml", "")
+                st.session_state["pdf_text"] = paper_data["pdf_text"]
+                st.session_state["current_paper_id"] = p["id"]
+                st.session_state["chat_messages"] = []  # Reset chat for new paper
+    else:
+        st.markdown("<span style='font-size: 0.8rem; color: #888;'>No past papers found.</span>", unsafe_allow_html=True)
 
 # ── Premium CSS inspired by makingsoftware.com ──────────────────────────────
 st.markdown("""
@@ -749,11 +765,20 @@ if uploaded_file is not None:
                 # ✅ Persist result in session_state so the diagram button can use it on rerun
                 st.session_state["analysis_result"] = result
                 st.session_state["diagram_xml"] = ""  # clear old diagram on new analysis
+                st.session_state["pdf_text"] = text
+                st.session_state["chat_messages"] = []
+                
+                # ✅ Save to Database
+                paper_id = db.save_paper(uploaded_file.name, text, result)
+                st.session_state["current_paper_id"] = paper_id
 
                 status.update(label="Analysis complete", state="complete", expanded=False)
 
                 # Cleanup the temporary file
                 os.remove(tmp_path)
+                
+                # Rerun to update sidebar history immediately
+                st.rerun()
 
             except Exception as e:
                 status.update(label="Error occurred", state="error", expanded=True)
@@ -779,14 +804,15 @@ if uploaded_file is not None:
         """, unsafe_allow_html=True)
 
         # ── Tabs ──
-        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
             "Summary",
             "Key Findings",
             "Contributions",
             "Limitations",
             "Equations",
             "Journal Notes",
-            "📊 Diagram"
+            "📊 Diagram",
+            "💬 Q&A Chat"
         ])
 
         def parse_bullet_points(raw_list):
@@ -995,6 +1021,47 @@ if uploaded_file is not None:
                         st.rerun()
                     else:
                         st.warning("Could not generate diagram for this paper. Please try again.")
+
+        with tab8:
+            st.markdown("""
+            <div class="section-header" style="margin-top: 0;">
+                <h2>Ask Questions About This Paper</h2>
+                <div class="section-rule"></div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Initialize chat history if not present
+            if "chat_messages" not in st.session_state:
+                st.session_state.chat_messages = []
+
+            # Display chat messages from history on app rerun
+            for message in st.session_state.chat_messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+
+            # React to user input
+            if prompt := st.chat_input("Ask a question about this paper..."):
+                # Display user message in chat message container
+                st.chat_message("user").markdown(prompt)
+                # Add user message to chat history
+                st.session_state.chat_messages.append({"role": "user", "content": prompt})
+
+                # Display assistant response in chat message container
+                with st.chat_message("assistant"):
+                    with st.spinner("Thinking..."):
+                        try:
+                            # Use the pdf_text from session_state
+                            paper_text = st.session_state.get("pdf_text", "")
+                            if not paper_text:
+                                st.error("No paper text found to answer from.")
+                            else:
+                                chat_agent = ChatAgent()
+                                response = chat_agent.run(paper_text, prompt, st.session_state.chat_messages[:-1])
+                                st.markdown(response)
+                                # Add assistant response to chat history
+                                st.session_state.chat_messages.append({"role": "assistant", "content": response})
+                        except Exception as e:
+                            st.error(f"Chat failed: {str(e)}")
 
 # ── Footer ──────────────────────────────────────────────────────────────────
 st.markdown("""
