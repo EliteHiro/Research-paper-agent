@@ -7,4 +7,4 @@ Agentic AI system for:
 - Key point extraction
 - Mathematical explanation
 - Journal note generation
-
+- Workflow Digram 
